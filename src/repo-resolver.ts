@@ -6,7 +6,7 @@ const log = createChildLogger('repo-resolver');
 /**
  * /home/kaz/git 配下のgitリポジトリ一覧を取得（毎回実行、キャッシュなし）
  */
-function getRepoList(gitRoot: string): { name: string; path: string }[] {
+function getRepoList(gitRoot: string, excludePaths: string[] = []): { name: string; path: string }[] {
   try {
     // findはPermission deniedでexit 1を返すことがあるため、エラーでも stdout を使う
     let output: string;
@@ -31,6 +31,13 @@ function getRepoList(gitRoot: string): { name: string; path: string }[] {
         const repoPath = gitDir.replace(/\/.git$/, '');
         const name = repoPath.split('/').pop() || '';
         return { name, path: repoPath };
+      })
+      .filter((r) => {
+        if (excludePaths.some((ex) => r.path === ex || r.path.startsWith(`${ex}/`))) {
+          log.info({ path: r.path }, '除外リポをスキップ');
+          return false;
+        }
+        return true;
       });
 
     log.debug({ count: repos.length }, 'リポジトリ一覧取得');
@@ -45,8 +52,8 @@ function getRepoList(gitRoot: string): { name: string; path: string }[] {
  * リポジトリの表示名一覧を返す（ルーター用）
  * 親ディレクトリ/リポ名の形式で返す（例: "loglass/sysdig-vuls-utils"）
  */
-export function getRepoNames(gitRoot: string): string[] {
-  return getRepoList(gitRoot).map((r) => {
+export function getRepoNames(gitRoot: string, excludePaths: string[] = []): string[] {
+  return getRepoList(gitRoot, excludePaths).map((r) => {
     const parts = r.path.replace(gitRoot, '').replace(/^\//, '').split('/');
     // github.com/org/repo → org/repo, loglass/repo → loglass/repo
     if (parts.length >= 3 && parts[0] === 'github.com') {
@@ -63,8 +70,12 @@ export function getRepoNames(gitRoot: string): string[] {
  * リポ名からパスを解決する（ルーター結果からの変換用）
  * "org/repo" 形式も "repo" 形式も対応
  */
-export function resolveRepoByName(repoName: string, gitRoot: string): string | null {
-  const repos = getRepoList(gitRoot);
+export function resolveRepoByName(
+  repoName: string,
+  gitRoot: string,
+  excludePaths: string[] = [],
+): string | null {
+  const repos = getRepoList(gitRoot, excludePaths);
   // org/repo形式: パスの末尾がマッチするか
   if (repoName.includes('/')) {
     const match = repos.find((r) => r.path.endsWith(repoName));
@@ -81,13 +92,17 @@ export function resolveRepoByName(repoName: string, gitRoot: string): string | n
  *
  * パターン: "ai-stewardの調査をして" → 冒頭の "ai-steward" をリポ名として解決
  */
-export function resolveRepoFromPrefix(message: string, gitRoot: string): string | null {
+export function resolveRepoFromPrefix(
+  message: string,
+  gitRoot: string,
+  excludePaths: string[] = [],
+): string | null {
   // 冒頭の英数字・ハイフン・アンダースコア部分を抽出
   const match = message.match(/^([a-zA-Z0-9][a-zA-Z0-9_-]*)/);
   if (!match) return null;
 
   const prefix = match[1];
-  const resolved = resolveRepoByName(prefix, gitRoot);
+  const resolved = resolveRepoByName(prefix, gitRoot, excludePaths);
   if (resolved) {
     log.info({ prefix, repoPath: resolved }, '冒頭リポ名マッチ');
   }
@@ -108,8 +123,9 @@ export function resolveRepo(
   message: string,
   gitRoot: string,
   defaultCwd: string,
+  excludePaths: string[] = [],
 ): { cwd: string; cleanedPrompt: string } {
-  const repos = getRepoList(gitRoot);
+  const repos = getRepoList(gitRoot, excludePaths);
   if (repos.length === 0) {
     return { cwd: defaultCwd, cleanedPrompt: message };
   }

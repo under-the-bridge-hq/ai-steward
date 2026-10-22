@@ -15,6 +15,8 @@ beforeAll(() => {
   mkdirSync(join(gitRoot, 'github.com/under-the-bridge-hq/llm-wiki/.git'), { recursive: true });
   mkdirSync(join(gitRoot, 'github.com/under-the-bridge-hq/llm-wiki-tools/.git'), { recursive: true });
   mkdirSync(join(gitRoot, 'loglass/sysdig-vuls-utils/.git'), { recursive: true });
+  mkdirSync(join(gitRoot, 'github.com/org-a/dup-repo/.git'), { recursive: true });
+  mkdirSync(join(gitRoot, 'github.com/org-b/dup-repo/.git'), { recursive: true });
 });
 
 afterAll(() => {
@@ -62,5 +64,25 @@ describe('resolveRepoFromPrefix', () => {
 
   it('冒頭がリポ名でなければ null', () => {
     expect(resolveRepoFromPrefix('READMEを見せて', gitRoot)).toBeNull();
+  });
+});
+
+describe('除外パス指定', () => {
+  it('resolveRepoByName は除外したリポを避けて同名の別リポを返す', () => {
+    expect(
+      resolveRepoByName('dup-repo', gitRoot, [join(gitRoot, 'github.com/org-a/dup-repo')]),
+    ).toBe(join(gitRoot, 'github.com/org-b/dup-repo'));
+  });
+
+  it('ディレクトリを指定すると配下のリポをまとめて除外する', () => {
+    const names = getRepoNames(gitRoot, [join(gitRoot, 'github.com/org-a')]);
+    expect(names).not.toContain('org-a/dup-repo');
+    expect(names).toContain('org-b/dup-repo');
+  });
+
+  it('getRepoNames は除外したリポ名を含まない', () => {
+    const names = getRepoNames(gitRoot, [join(gitRoot, 'github.com/org-a/dup-repo')]);
+    expect(names).not.toContain('org-a/dup-repo');
+    expect(names).toContain('org-b/dup-repo');
   });
 });
