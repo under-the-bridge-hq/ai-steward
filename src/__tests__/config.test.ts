@@ -19,6 +19,7 @@ const MANAGED_KEYS = [
   'MODEL_MAIN_EFFORT',
   'MODEL_LIGHT',
   'MODEL_MAINTENANCE',
+  'REPO_EXCLUDE_PATHS',
 ];
 
 let savedEnv: Record<string, string | undefined>;
@@ -106,5 +107,14 @@ describe('loadConfig', () => {
     expect(() => loadConfig()).toThrow('SESSION_TIMEOUT_MINUTES');
     process.env.SESSION_TIMEOUT_MINUTES = '0';
     expect(() => loadConfig()).toThrow('SESSION_TIMEOUT_MINUTES');
+  });
+
+  it('REPO_EXCLUDE_PATHSをカンマ区切りでパースしtrim・末尾スラッシュ除去する', () => {
+    process.env.REPO_EXCLUDE_PATHS = ' /a/b/ , /c/d ,,';
+    expect(loadConfig().claude.repoExcludePaths).toEqual(['/a/b', '/c/d']);
+  });
+
+  it('REPO_EXCLUDE_PATHS未設定は空配列', () => {
+    expect(loadConfig().claude.repoExcludePaths).toEqual([]);
   });
 });

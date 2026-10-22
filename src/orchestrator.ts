@@ -101,7 +101,7 @@ export class Orchestrator {
       ? new Formatter({ ...DEFAULT_FORMATTER_CONFIG, anthropicApiKey: config.anthropicApiKey, model: config.models.light })
       : null;
     this.router = config.anthropicApiKey
-      ? new Router(config.anthropicApiKey, config.models.light, getRepoNames(config.claude.defaultCwd))
+      ? new Router(config.anthropicApiKey, config.models.light, getRepoNames(config.claude.defaultCwd, config.claude.repoExcludePaths))
       : null;
     this.maintenance = config.anthropicApiKey
       ? new Maintenance(config.anthropicApiKey, config.models.maintenance)
@@ -293,16 +293,16 @@ export class Orchestrator {
         log.info({ channelId: msg.channelId, cwd: boundRepo }, 'チャンネルバインディングでcwd決定');
       } else if (msg.text) {
         // メッセージ冒頭のリポ名マッチを優先（高速・確実）
-        const prefixMatch = resolveRepoFromPrefix(msg.text, this.config.claude.defaultCwd);
+        const prefixMatch = resolveRepoFromPrefix(msg.text, this.config.claude.defaultCwd, this.config.claude.repoExcludePaths);
         if (prefixMatch) {
           resolvedCwd = prefixMatch;
         } else if (this.router) {
           // フォールバック: Haikuルーターでリポ名を解決
           // セッション中にcloneされたリポも見えるよう、毎回一覧を取り直す
-          this.router.updateRepoNames(getRepoNames(this.config.claude.defaultCwd));
+          this.router.updateRepoNames(getRepoNames(this.config.claude.defaultCwd, this.config.claude.repoExcludePaths));
           const routeResult = await this.router.route(msg.text);
           if (routeResult.repoName) {
-            const repoPath = resolveRepoByName(routeResult.repoName, this.config.claude.defaultCwd);
+            const repoPath = resolveRepoByName(routeResult.repoName, this.config.claude.defaultCwd, this.config.claude.repoExcludePaths);
             resolvedCwd = repoPath || this.config.claude.defaultCwd;
           } else {
             resolvedCwd = this.config.claude.defaultCwd;

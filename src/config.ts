@@ -34,6 +34,8 @@ export interface AppConfig {
     path: string;
     homeDir: string;
     defaultCwd: string;
+    // リポ名解決の候補から除外するリポの絶対パス
+    repoExcludePaths: string[];
     // 既定の--permission-mode（RepoConfigのpermissionModeで上書き可）
     defaultPermissionMode: string;
     // 常駐CLIプロセス数の全体上限（超過分はキュー待ち）
@@ -146,6 +148,10 @@ export function loadConfig(): AppConfig {
       path: process.env.CLAUDE_PATH || 'claude',
       homeDir: process.env.CLAUDE_HOME || process.env.HOME || '/home/kaz',
       defaultCwd: process.env.CLAUDE_CWD || '/home/kaz/git',
+      repoExcludePaths: (process.env.REPO_EXCLUDE_PATHS || '')
+        .split(',')
+        .map((s) => s.trim().replace(/\/+$/, ''))
+        .filter(Boolean),
       defaultPermissionMode: process.env.DEFAULT_PERMISSION_MODE || 'default',
       maxConcurrentSessions: parsePositiveInt('MAX_CONCURRENT_SESSIONS', 3),
       sessionTimeoutMinutes: parsePositiveInt('SESSION_TIMEOUT_MINUTES', 60),
