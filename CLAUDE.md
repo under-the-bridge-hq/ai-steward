@@ -39,7 +39,7 @@ src/
 ### デプロイ構成
 
 - systemdサービス: `/etc/systemd/system/ai-steward.service`
-- 環境変数: `~/.config/ai-steward/env`（Ansibleは初回のみ`.env`からコピー。以後は直接編集 + `sudo systemctl restart ai-steward` で反映）
+- 環境変数: `~/.config/ai-steward/env`（ouchi-server の Ansible が `roles/ai_steward/templates/env.j2` から生成。値は `inventory/group_vars/ai_commanders.yml` と Vault で管理し、`make local` で配置 + 再起動。直接編集は次回 `make local` で上書きされる）
 - Ansibleロール: ouchi-server `ansible/roles/ai_steward/`
 - 適用: `cd ouchi-server/ansible && make local`
 - ログ: `sudo journalctl -u ai-steward -f`
