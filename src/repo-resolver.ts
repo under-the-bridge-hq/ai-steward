@@ -33,7 +33,7 @@ function getRepoList(gitRoot: string, excludePaths: string[] = []): { name: stri
         return { name, path: repoPath };
       })
       .filter((r) => {
-        if (excludePaths.includes(r.path)) {
+        if (excludePaths.some((ex) => r.path === ex || r.path.startsWith(`${ex}/`))) {
           log.info({ path: r.path }, '除外リポをスキップ');
           return false;
         }

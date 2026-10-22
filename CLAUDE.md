@@ -111,7 +111,7 @@ stream-json入出力はNDJSON形式（1行1JSONオブジェクト）。主要イ
 | ANTHROPIC_API_KEY | No | Anthropic API Key (Formatter用、MVP3以降) |
 | CLAUDE_HOME | No | Claude認証情報のHOMEパス (default: $HOME) |
 | CLAUDE_CWD | No | デフォルト作業ディレクトリ (default: /home/kaz/git) |
-| REPO_EXCLUDE_PATHS | No | リポ名解決の候補から除外するリポの絶対パス（カンマ区切り）。同名リポが複数ある場合に意図しない方を外す |
+| REPO_EXCLUDE_PATHS | No | リポ名解決の候補から除外する絶対パス（カンマ区切り）。リポ本体またはその親ディレクトリ（org 単位）を指定でき、配下のリポをまとめて外す |
 | DEFAULT_PERMISSION_MODE | No | 既定の--permission-mode (default: default)。bypassPermissions / acceptEdits 等。repos.jsonのpermissionModeでリポ毎に上書き可 |
 | MODEL_MAIN | No | Claude Code CLIの--model (default: claude-fable-5)。repos.jsonのmodelでリポ毎に上書き可 |
 | MODEL_MAIN_EFFORT | No | Claude Code CLIの--effort (default: low)。low / medium / high / xhigh / max。repos.jsonのeffortでリポ毎に上書き可 |

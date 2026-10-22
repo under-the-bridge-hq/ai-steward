@@ -74,6 +74,12 @@ describe('除外パス指定', () => {
     ).toBe(join(gitRoot, 'github.com/org-b/dup-repo'));
   });
 
+  it('ディレクトリを指定すると配下のリポをまとめて除外する', () => {
+    const names = getRepoNames(gitRoot, [join(gitRoot, 'github.com/org-a')]);
+    expect(names).not.toContain('org-a/dup-repo');
+    expect(names).toContain('org-b/dup-repo');
+  });
+
   it('getRepoNames は除外したリポ名を含まない', () => {
     const names = getRepoNames(gitRoot, [join(gitRoot, 'github.com/org-a/dup-repo')]);
     expect(names).not.toContain('org-a/dup-repo');

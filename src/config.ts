@@ -34,7 +34,7 @@ export interface AppConfig {
     path: string;
     homeDir: string;
     defaultCwd: string;
-    // リポ名解決の候補から除外するリポの絶対パス
+    // リポ名解決の候補から除外する絶対パス（リポまたは親ディレクトリ）
     repoExcludePaths: string[];
     // 既定の--permission-mode（RepoConfigのpermissionModeで上書き可）
     defaultPermissionMode: string;
